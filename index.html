@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ultimate Multi Calculator</title>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    background: #121212;
+    color: #eee;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .container {
+    background: #1c1c1c;
+    border-radius: 20px;
+    box-shadow: 0 0 25px #0af;
+    width: 560px;
+    max-width: 100vw;
+    padding: 25px;
+  }
+  .mode-toggle {
+    text-align: center;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .mode-toggle button {
+    background: #444;
+    border: none;
+    border-radius: 12px;
+    color: #ccc;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin: 4px 6px 12px;
+    padding: 8px 14px;
+    box-shadow: 3px 3px 8px #222, -3px -3px 8px #666;
+    transition: background 0.3s ease;
+    display: inline-block;
+  }
+  .mode-toggle button.active,
+  .mode-toggle button:hover {
+    background: #0af;
+    color: #fff;
+    box-shadow: 0 0 18px #0af;
+  }
+  /* Shared input styles */
+  input[type=number], input[type=text], select {
+    width: 100%;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    border-radius: 10px;
+    border: none;
+    background: #292929;
+    color: #eee;
+    font-size: 1.1rem;
+  }
+  label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: block;
+    color: #0af;
+  }
+  button.calc-btn {
+    background: #0af;
+    border: none;
+    border-radius: 16px;
+    color: #121212;
+    font-weight: 700;
+    font-size: 1.25rem;
+    width: 100%;
+    padding: 14px 0;
+    cursor: pointer;
+    box-shadow: 0 0 25px #0af;
+    transition: background 0.3s ease;
+    margin-bottom: 16px;
+  }
+  button.calc-btn:hover {
+    background: #08e;
+    box-shadow: 0 0 35px #08e;
+  }
+  .result {
+    background: #222;
+    padding: 15px 20px;
+    border-radius: 14px;
+    font-size: 1.2rem;
+    min-height: 48px;
+    color: #0af;
+    white-space: pre-wrap;
+  }
+  /* Hide all calculator sections by default */
+  .calculator-section {
+    display: none;
+  }
+  /* Display the active section */
+  .calculator-section.active {
+    display: block;
+  }
+  /* Calculator display for basic/scientific */
+  .calc-display {
+    background: #222;
+    border-radius: 15px;
+    height: 70px;
+    font-size: 2.3rem;
+    color: #0af;
+    padding: 10px 20px;
+    text-align: right;
+    overflow-wrap: break-word;
+    box-shadow: inset 2px 2px 8px #0a0a2a;
+    margin-bottom: 20px;
+    user-select: none;
+  }
+  /* Buttons grid */
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-gap: 12px;
+  }
+  button.calc-btn-grid {
+    background: #292929;
+    border: none;
+    border-radius: 15px;
+    padding: 18px 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #eee;
+    box-shadow: 3px 3px 7px #121212, -3px -3px 7px #3a3a3a;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    outline-offset: 2px;
+  }
+  button.calc-btn-grid:hover {
+    background: #0a84ff;
+    color: #fff;
+    box-shadow: 0 0 12px #0a84ff;
+    transform: translateY(-2px);
+  }
+  button.calc-btn-grid:active {
+    box-shadow: inset 2px 2px 8px #0a84ff;
+    transform: translateY(1px);
+  }
+  button.operator {
+    color: #0af;
+    font-weight: 700;
+  }
+  button.equal {
+    background: #0af;
+    color: #121212;
+    font-weight: 700;
+    grid-column: span 2;
+    box-shadow: 0 0 20px #0af;
+  }
+  button.equal:hover {
+    background: #08e;
+    box-shadow: 0 0 30px #08e;
+  }
+  button.zero {
+    grid-column: span 2;
+  }
+  /* Responsive */
+  @media (max-width: 580px) {
+    .container {
+      width: 100vw;
+      border-radius: 0;
+      padding: 20px 15px;
+    }
+    button.calc-btn, input[type=number], input[type=text], select {
+      font-size: 1rem;
+    }
+    .calc-display {
+      font-size: 1.8rem;
+      height: 58px;
+    }
+    button.calc-btn-grid {
+      font-size: 1.1rem;
+      padding: 14px 0;
+    }
+    .mode-toggle {
+      white-space: normal;
+      overflow-x: visible;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="container" role="main" aria-label="Ultimate Multi Calculator">
+
+    <div class="mode-toggle" role="group" aria-label="Calculator type selection">
+      <button data-mode="basic" class="active" aria-pressed="true">Basic</button>
+      <button data-mode="scientific" aria-pressed="false">Scientific</button>
+      <button data-mode="emi" aria-pressed="false">EMI Calculator</button>
+      <button data-mode="bmi" aria-pressed="false">BMI Calculator</button>
+      <button data-mode="simple_interest" aria-pressed="false">Simple Interest</button>
+      <button data-mode="compound_interest" aria-pressed="false">Compound Interest</button>
+      <button data-mode="fuel_cost" aria-pressed="false">Fuel Cost</button>
+      <button data-mode="percentage" aria-pressed="false">Percentage</button>
+      <button data-mode="temperature" aria-pressed="false">Temp Converter</button>
+      <button data-mode="mortgage" aria-pressed="false">Mortgage</button>
+      <button data-mode="loan" aria-pressed="false">Loan Calculator</button>
+      <button data-mode="date_diff" aria-pressed="false">Date Diff</button>
+      <button data-mode="tip" aria-pressed="false">Tip Calculator</button>
+      <button data-mode="body_fat" aria-pressed="false">Body Fat</button>
+      <button data-mode="calorie" aria-pressed="false">Calorie Calc</button>
+      <button data-mode="currency" aria-pressed="false">Currency Converter</button>
+      <button data-mode="electrical" aria-pressed="false">Electrical Calc</button>
+      <button data-mode="cooking" aria-pressed="false">Cooking Converter</button>
+      <button data-mode="timezone" aria-pressed="false">Time Zone</button>
+      <button data-mode="cash_denomination" aria-pressed="false">Cash Denomination</button>
+
+    </div>
+
+    <!-- Basic Calculator -->
+    <div id="basic" class="calculator-section active" aria-label="Basic calculator section">
+      <div class="calc-display" id="basicDisplay" aria-live="polite" aria-atomic="true" aria-label="Calculator display">0</div>
+      <div class="buttons" aria-label="Basic calculator buttons">
+        <button class="calc-btn-grid operator" data-action="mc" aria-label="Memory Clear">MC</button>
+        <button class="calc-btn-grid operator" data-action="mr" aria-label="Memory Recall">MR</button>
+        <button class="calc-btn-grid operator" data-action="mplus" aria-label="Memory Add">M+</button>
+        <button class="calc-btn-grid operator" data-action="mminus" aria-label="Memory Subtract">M-</button>
+        <button class="calc-btn-grid operator" data-action="clear" aria-label="Clear">C</button>
+        <button class="calc-btn-grid operator" data-action="delete" aria-label="Delete">⌫</button>
+
+        <button class="calc-btn-grid" data-digit="7" aria-label="7">7</button>
+        <button class="calc-btn-grid" data-digit="8" aria-label="8">8</button>
+        <button class="calc-btn-grid" data-digit="9" aria-label="9">9</button>
+        <button class="calc-btn-grid operator" data-action="divide" aria-label="Divide">÷</button>
+        <button class="calc-btn-grid operator" data-action="percent" aria-label="Percent">%</button>
+        <button class="calc-btn-grid operator" data-action="sqrt" aria-label="Square Root">√</button>
+
+        <button class="calc-btn-grid" data-digit="4" aria-label="4">4</button>
+        <button class="calc-btn-grid" data-digit="5" aria-label="5">5</button>
+        <button class="calc-btn-grid" data-digit="6" aria-label="6">6</button>
+        <button class="calc-btn-grid operator" data-action="multiply" aria-label="Multiply">×</button>
+        <button class="calc-btn-grid operator" data-action="square" aria-label="Square">x²</button>
+        <button class="calc-btn-grid operator" data-action="reciprocal" aria-label="Reciprocal">1/x</button>
+
+        <button class="calc-btn-grid" data-digit="1" aria-label="1">1</button>
+        <button class="calc-btn-grid" data-digit="2" aria-label="2">2</button>
+        <button class="calc-btn-grid" data-digit="3" aria-label="3">3</button>
+        <button class="calc-btn-grid operator" data-action="subtract" aria-label="Subtract">−</button>
+        <button class="calc-btn-grid operator" data-action="negate" aria-label="Negate">±</button>
+        <button class="calc-btn-grid operator" data-action="factorial" aria-label="Factorial">n!</button>
+
+        <button class="calc-btn-grid zero" data-digit="0" aria-label="0">0</button>
+        <button class="calc-btn-grid" data-digit="." aria-label="Decimal point">.</button>
+        <button class="calc-btn-grid equal" data-action="equals" aria-label="Equals">=</button>
+        <button class="calc-btn-grid operator" data-action="add" aria-label="Add">+</button>
+      </div>
+    </div>
+
+    <!-- Scientific Calculator -->
+    <div id="scientific" class="calculator-section" aria-label="Scientific calculator section">
+      <div class="calc-display" id="scientificDisplay" aria-live="polite" aria-atomic="true" aria-label="Calculator display">0</div>
+      <div class="buttons" aria-label="Scientific calculator buttons">
+        <button class="calc-btn-grid operator" data-action="sin" aria-label="Sine">sin</button>
+        <button class="calc-btn-grid operator" data-action="cos" aria-label="Cosine">cos</button>
+        <button class="calc-btn-grid operator" data-action="tan" aria-label="Tangent">tan</button>
+        <button class="calc-btn-grid operator" data-action="asin" aria-label="Arc Sine">asin</button>
+        <button class="calc-btn-grid operator" data-action="acos" aria-label="Arc Cosine">acos</button>
+        <button class="calc-btn-grid operator" data-action="atan" aria-label="Arc Tangent">atan</button>
+
+        <button class="calc-btn-grid operator" data-action="log" aria-label="Log base 10">log</button>
+        <button class="calc-btn-grid operator" data-action="ln" aria-label="Natural Log">ln</button>
+        <button class="calc-btn-grid operator" data-action="exp" aria-label="Exponential">eˣ</button>
+        <button class="calc-btn-grid operator" data-action="pow" aria-label="Power">xʸ</button>
+        <button class="calc-btn-grid operator" data-action="pi" aria-label="Pi constant">π</button>
+        <button class="calc-btn-grid operator" data-action="e" aria-label="Euler's number">e</button>
+      </div>
+    </div>
+
+    <!-- EMI Calculator -->
+    <div id="emi" class="calculator-section" aria-label="EMI Calculator section">
+      <label for="emiPrincipal">Principal Amount (₹):</label>
+      <input type="number" id="emiPrincipal" min="0" step="0.01" placeholder="e.g. 100000" />
+      <label for="emiInterest">Annual Interest Rate (%):</label>
+      <input type="number" id="emiInterest" min="0" step="0.01" placeholder="e.g. 7.5" />
+      <label for="emiTenure">Tenure (months):</label>
+      <input type="number" id="emiTenure" min="1" step="1" placeholder="e.g. 60" />
+      <button class="calc-btn" id="calcEmiBtn">Calculate EMI</button>
+      <div class="result" id="emiResult" aria-live="polite"></div>
+    </div>
+
+    <!-- BMI Calculator -->
+    <div id="bmi" class="calculator-section" aria-label="BMI Calculator section">
+      <label for="bmiWeight">Weight (kg):</label>
+      <input type="number" id="bmiWeight" min="0" step="0.1" placeholder="e.g. 70" />
+      <label for="bmiHeight">Height (cm):</label>
+      <input type="number" id="bmiHeight" min="0" step="0.1" placeholder="e.g. 170" />
+      <button class="calc-btn" id="calcBmiBtn">Calculate BMI</button>
+      <div class="result" id="bmiResult" aria-live="polite"></div>
+    </div>
+
+    <!-- Simple Interest Calculator -->
+    <div id="simple_interest" class="calculator-section" aria-label="Simple Interest Calculator section">
+      <label for="siPrincipal">Principal Amount (₹):</label>
+      <input type="number" id="siPrincipal" min="0" step="0.01" placeholder="e.g. 100000" />
+      <label for="siRate">Annual Interest Rate (%):</label>
+      <input type="number" id="siRate" min="0" step="0.01" placeholder="e.g. 5" />
+      <label for="siTime">Time Period (years):</label>
+      <input type="number" id="siTime" min="0" step="0.01" placeholder="e.g. 3" />
+      <button class="calc-btn" id="calcSiBtn">Calculate Simple Interest</button>
+      <div class="result" id="siResult" aria-live="polite"></div>
+    </div>
+
+    <!-- Compound Interest Calculator -->
+    <div id="compound_interest" class="calculator-section" aria-label="Compound Interest Calculator section">
+      <label for="ciPrincipal">Principal Amount (₹):</label>
+      <input type="number" id="ciPrincipal" min="0" step="0.01" placeholder="e.g. 100000" />
+      <label for="ciRate">Annual Interest Rate (%):</label>
+      <input type="number" id="ciRate" min="0" step="0.01" placeholder="e.g. 7" />
+      <label for="ciTime">Time Period (years):</label>
+      <input type="number" id="ciTime" min="0" step="0.01" placeholder="e.g. 5" />
+      <label for="ciCompFreq">Compound Frequency (times per year):</label>
+      <input type="number" id="ciCompFreq" min="1" step="1" placeholder="e.g. 4" />
+      <button class="calc-btn" id="calcCiBtn">Calculate Compound Interest</button>
+      <div class="result" id="ciResult" aria-live="polite"></div>
+    </div>
+
+    <!-- Fuel Cost Calculator -->
+    <div id="fuel_cost" class="calculator-section" aria-label="Fuel Cost Calculator section">
+      <label for="fuelDistance">Distance to Travel (km):</label>
+      <input type="number" id="fuelDistance" min="0" step="0.1" placeholder="e.g. 100" />
+      <label for="fuelMileage">Vehicle Mileage (km/l):</label>
+      <input type="number" id="fuelMileage" min="0" step="0.1" placeholder="e.g. 15" />
+      <label for="fuelPrice">Fuel Price per litre (₹):</label>
+      <input type="number" id="fuelPrice" min="0" step="0.01" placeholder="e.g. 100" />
+      <button class="calc-btn" id="calcFuelBtn">Calculate Fuel Cost</button>
+      <div class="result" id="fuelResult" aria-live="polite"></div>
+    </div>
+
+    <!-- Percentage Calculator -->
+    <div id="percentage" class="calculator-section" aria-label="Percentage Calculator section">
+      <label for="percentValue">Value:</label>
+      <input type="number" id="percentValue" step="0.01" placeholder="e.g. 80" />
+      <label for="percentOf">Percentage of:</label>
+      <input type="number" id="percentOf" step="0.01" placeholder="e.g. 200" />
+      <button class="calc-btn" id="calcPercentBtn">Calculate Percentage</button>
+      <div class="result" id="percentResult" aria-live="polite"></div>
+    </div>
+
+    <!-- Temperature Converter -->
+    <div id="temperature" class="calculator-section" aria-label="Temperature Converter section">
+      <label for="tempInput">Temperature:</label>
+      <input type="number" id="tempInput" step="0.1" placeholder="e.g. 32" />
+      <label for="tempUnit">Convert From:</label>
+      <select id="tempUnit" aria-label="Select temperature unit">
+        <option value="celsius">Celsius (°C)</option>
+        <option value="fahrenheit">Fahrenheit (°F)</option>
+        <option value="kelvin">Kelvin (K)</option>
+      </select>
+      <button class="calc-btn" id="calcTempBtn">Convert Temperature</button>
+      <div class="result" id="tempResult" aria-live="polite"></div>
+    </div>
+
+    <!-- Mortgage Calculator -->
+    <div id="mortgage" class="calculator-section" aria-label="Mortgage Calculator section">
+      <label for="mortPrincipal">Loan Amount (₹):</label>
+      <input type="number" id="mortPrincipal" min="0" step="0.01" placeholder="e.g. 5000000" />
+      <label for="mortInterest">Annual Interest Rate (%):</label>
+      <input type="number" id="mortInterest" min="0" step="0.01" placeholder="e.g. 7.5" />
+      <label for="mortTenure">Tenure (years):</label>
+      <input type="number" id="mortTenure" min="1" step="1" placeholder="e.g. 20" />
+      <button class="calc-btn" id="calcMortBtn">Calculate Mortgage</button>
+      <div class="result" id="mortResult" aria-live="polite"></div>
+    </div>
+
+    <!-- Loan Calculator (like EMI but including additional payment) -->
+    <div id="loan" class="calculator-section" aria-label="Loan Calculator section">
+      <label for="loanPrincipal">Loan Amount (₹):</label>
+      <input type="number" id="loanPrincipal" min="0" step="0.01" placeholder="e.g. 1000000" />
+      <label for="loanInterest">Annual Interest Rate (%):</label>
+      <input type="number" id="loanInterest" min="0" step="0.01" placeholder="e.g. 8.5" />
+      <label for="loanTenure">Tenure (months):</label>
+      <input type="number" id="loanTenure" min="1" step="1" placeholder="e.g. 60" />
+      <label for="loanExtra">Additional Payment per month (₹):</label>
+      <input type="number" id="loanExtra" min="0" step="0.01" placeholder="e.g. 5000" value="0" />
+      <button class="calc-btn" id="calcLoanBtn">Calculate Loan</button>
+      <div class="result" id="loanResult" aria-live="polite"></div>
+    </div>
+
+    <!-- Date Difference Calculator -->
+    <div id="date_diff" class="calculator-section" aria-label="Date Difference Calculator section">
+      <label for="date1">Start Date:</label>
+      <input type="date" id="date1" />
+      <label for="date2">End Date:</label>
+      <input type="date" id="date2" />
+      <button class="calc-btn" id="calcDateDiffBtn">Calculate Date Difference</button>
+      <div class="result" id="dateDiffResult" aria-live="polite"></div>
+    </div>
+
+    <!-- Tip Calculator -->
+    <div id="tip" class="calculator-section" aria-label="Tip Calculator section">
+      <label for="tipBill">Bill Amount (₹):</label>
+      <input type="number" id="tipBill" min="0" step="0.01" placeholder="e.g. 1000" />
+      <label for="tipPercent">Tip Percentage (%):</label>
+      <input type="number" id="tipPercent" min="0" step="0.01" placeholder="e.g. 15" />
+      <label for="tipPeople">Number of People:</label>
+      <input type="number" id="tipPeople" min="1" step="1" placeholder="e.g. 4" value="1" />
+      <button class="calc-btn" id="calcTipBtn">Calculate Tip</button>
+      <div class="result" id="tipResult" aria-live="polite"></div>
+    </div>
+
+    <!-- Body Fat Calculator -->
+    <div id="body_fat" class="calculator-section" aria-label="Body Fat Calculator section">
+      <label for="bfGender">Gender:</label>
+      <select id="bfGender" aria-label="Select Gender">
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+      <label for="bfAge">Age (years):</label>
+      <input type="number" id="bfAge" min="1" step="1" placeholder="e.g. 30" />
+      <label for="bfWaist">Waist circumference (cm):</label>
+      <input type="number" id="bfWaist" min="0" step="0.1" placeholder="e.g. 80" />
+      <label for="bfNeck">Neck circumference (cm):</label>
+      <input type="number" id="bfNeck" min="0" step="0.1" placeholder="e.g. 40" />
+      <label for="bfHeight">Height (cm):</label>
+      <input type="number" id="bfHeight" min="0" step="0.1" placeholder="e.g. 170" />
+      <label for="bfHip" id="bfHipLabel" style="display:none;">Hip circumference (cm):</label>
+      <input type="number" id="bfHip" min="0" step="0.1" placeholder="e.g. 90" style="display:none;" />
+      <button class="calc-btn" id="calcBfBtn">Calculate Body Fat %</button>
+      <div class="result" id="bfResult" aria-live="polite"></div>
+    </div>
+
+    <!-- Calorie Calculator -->
+    <div id="calorie" class="calculator-section" aria-label="Calorie Calculator section">
+      <label for="calorieGender">Gender:</label>
+      <select id="calorieGender" aria-label="Select Gender">
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+      <label for="calorieAge">Age (years):</label>
+      <input type="number" id="calorieAge" min="1" step="1" placeholder="e.g. 25" />
+      <label for="calorieWeight">Weight (kg):</label>
+      <input type="number" id="calorieWeight" min="0" step="0.1" placeholder="e.g. 70" />
+      <label for="calorieHeight">Height (cm):</label>
+      <input type="number" id="calorieHeight" min="0" step="0.1" placeholder="e.g. 170" />
+      <label for="calorieActivity">Activity Level:</label>
+      <select id="calorieActivity" aria-label="Select activity level">
+        <option value="1.2">Sedentary (little or no exercise)</option>
+        <option value="1.375">Lightly active (light exercise/sports 1-3 days/week)</option>
+        <option value="1.55">Moderately active (moderate exercise/sports 3-5 days/week)</option>
+        <option value="1.725">Very active (hard exercise/sports 6-7 days a week)</option>
+        <option value="1.9">Extra active (very hard exercise/sports & physical job)</option>
+      </select>
+      <button class="calc-btn" id="calcCalorieBtn">Calculate Calories</button>
+      <div class="result" id="calorieResult" aria-live="polite"></div>
+    </div>
+
+    <!-- Currency Converter -->
+    <div id="currency" class="calculator-section" aria-label="Currency Converter section">
+      <label for="currencyAmount">Amount:</label>
+      <input type="number" id="currencyAmount" min="0" step="0.01" placeholder="e.g. 100" />
+      <label for="currencyFrom">From Currency:</label>
+      <select id="currencyFrom" aria-label="Select source currency">
+        <option value="USD">USD (US Dollar)</option>
+        <option value="INR">INR (Indian Rupee)</option>
+        <option value="EUR">EUR (Euro)</option>
+        <option value="GBP">GBP (British Pound)</option>
+        <option value="JPY">JPY (Japanese Yen)</option>
+        <option value="CNY">CNY (Chinese Yuan)</option>
+      </select>
+      <label for="currencyTo">To Currency:</label>
+      <select id="currencyTo" aria-label="Select target currency">
+        <option value="USD">USD (US Dollar)</option>
+        <option value="INR">INR (Indian Rupee)</option>
+        <option value="EUR">EUR (Euro)</option>
+        <option value="GBP">GBP (British Pound)</option>
+        <option value="JPY">JPY (Japanese Yen)</option>
+        <option value="CNY">CNY (Chinese Yuan)</option>
+      </select>
+      <button class="calc-btn" id="calcCurrencyBtn">Convert Currency</button>
+      <div class="result" id="currencyResult" aria-live="polite"></div>
+      <small style="color:#ccc;">* Rates are static and approximate for demo purposes.</small>
+    </div>
+
+    <!-- Electrical Calculator -->
+    <div id="electrical" class="calculator-section" aria-label="Electrical Calculator section">
+      <label for="voltage">Voltage (V):</label>
+      <input type="number" id="voltage" min="0" step="0.01" placeholder="e.g. 220" />
+      <label for="current">Current (A):</label>
+      <input type="number" id="current" min="0" step="0.01" placeholder="e.g. 5" />
+      <label for="resistance">Resistance (Ω):</label>
+      <input type="number" id="resistance" min="0" step="0.01" placeholder="e.g. 44" />
+      <button class="calc-btn" id="calcElectricalBtn">Calculate Missing Values</button>
+      <div class="result" id="electricalResult" aria-live="polite"></div>
+    </div>
+
+    <!-- Cooking Measurement Converter -->
+    <div id="cooking" class="calculator-section" aria-label="Cooking Measurement Converter section">
+      <label for="cookingAmount">Amount:</label>
+      <input type="number" id="cookingAmount" min="0" step="0.01" placeholder="e.g. 1" />
+      <label for="cookingFrom">From Unit:</label>
+      <select id="cookingFrom" aria-label="Select source cooking unit">
+        <option value="tsp">Teaspoon (tsp)</option>
+        <option value="tbsp">Tablespoon (tbsp)</option>
+        <option value="cup">Cup (US)</option>
+        <option value="ml">Milliliter (ml)</option>
+        <option value="l">Liter (l)</option>
+        <option value="oz">Ounce (oz)</option>
+        <option value="g">Gram (g)</option>
+        <option value="kg">Kilogram (kg)</option>
+      </select>
+      <label for="cookingTo">To Unit:</label>
+      <select id="cookingTo" aria-label="Select target cooking unit">
+        <option value="tsp">Teaspoon (tsp)</option>
+        <option value="tbsp">Tablespoon (tbsp)</option>
+        <option value="cup">Cup (US)</option>
+        <option value="ml">Milliliter (ml)</option>
+        <option value="l">Liter (l)</option>
+        <option value="oz">Ounce (oz)</option>
+        <option value="g">Gram (g)</option>
+        <option value="kg">Kilogram (kg)</option>
+      </select>
+      <button class="calc-btn" id="calcCookingBtn">Convert Measurement</button>
+      <div class="result" id="cookingResult" aria-live="polite"></div>
+    </div>
+
+    <!-- Time Zone Converter -->
+    <div id="timezone" class="calculator-section" aria-label="Time Zone Converter section">
+      <label for="tzInput">Date and Time (local):</label>
+      <input type="datetime-local" id="tzInput" />
+      <label for="tzFrom">From Timezone:</label>
+      <select id="tzFrom" aria-label="Select source timezone">
+        <option value="UTC">UTC</option>
+        <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+        <option value="America/New_York">America/New_York (EST)</option>
+        <option value="Europe/London">Europe/London (GMT)</option>
+        <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+        <option value="Australia/Sydney">Australia/Sydney (AEST)</option>
+      </select>
+      <label for="tzTo">To Timezone:</label>
+      <select id="tzTo" aria-label="Select target timezone">
+        <option value="UTC">UTC</option>
+        <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+        <option value="America/New_York">America/New_York (EST)</option>
+        <option value="Europe/London">Europe/London (GMT)</option>
+        <option value="Asia/Tokyo">Asia/Tokyo (JST)</option>
+        <option value="Australia/Sydney">Australia/Sydney (AEST)</option>
+      </select>
+      <button class="calc-btn" id="calcTzBtn">Convert Time</button>
+      <div class="result" id="tzResult" aria-live="polite"></div>
+    </div>
+    
+    <!-- Cash Denomination Calculator -->
+    <div id="cash_denomination" class="calculator-section" aria-label="Cash Denomination Calculator section">
+      <h2 style="color: #0af; text-align: center; margin-bottom: 20px;">Cash Denomination Calculator</h2>
+    
+      <label for="c5">Number of ₹5 coins/notes:</label>
+      <input type="number" id="c5" placeholder="e.g., 3">
+    
+      <label for="c10">Number of ₹10 notes:</label>
+      <input type="number" id="c10">
+    
+      <label for="c20">Number of ₹20 notes:</label>
+      <input type="number" id="c20">
+    
+      <label for="c50">Number of ₹50 notes:</label>
+      <input type="number" id="c50">
+    
+      <label for="c100">Number of ₹100 notes:</label>
+      <input type="number" id="c100">
+    
+      <label for="c200">Number of ₹200 notes:</label>
+      <input type="number" id="c200">
+    
+      <label for="c500">Number of ₹500 notes:</label>
+      <input type="number" id="c500">
+    
+      <button class="calc-btn" id="calcCashBtn">Calculate Total</button>
+    
+      <div class="result" id="cashResult" aria-live="polite"></div>
+    </div>
+
+
+  </div>
+
+<script>
+  (() => {
+    // Mode selection and sections
+    const modeButtons = document.querySelectorAll('.mode-toggle button');
+    const sections = document.querySelectorAll('.calculator-section');
+
+    modeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        modeButtons.forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+        const mode = btn.getAttribute('data-mode');
+        sections.forEach(section => {
+          section.classList.toggle('active', section.id === mode);
+        });
+        clearCalculatorInputs(mode);
+      });
+    });
+
+    // Clear calculator inputs and outputs on mode switch for cleanliness
+    function clearCalculatorInputs(mode) {
+      switch(mode) {
+        case 'basic':
+        case 'scientific':
+          clearAll();
+          updateBasicDisplay();
+          updateScientificDisplay();
+          break;
+        case 'emi':
+          emiPrincipal.value = '';
+          emiInterest.value = '';
+          emiTenure.value = '';
+          emiResult.textContent = '';
+          break;
+        case 'bmi':
+          bmiWeight.value = '';
+          bmiHeight.value = '';
+          bmiResult.textContent = '';
+          break;
+        case 'simple_interest':
+          siPrincipal.value = '';
+          siRate.value = '';
+          siTime.value = '';
+          siResult.textContent = '';
+          break;
+        case 'compound_interest':
+          ciPrincipal.value = '';
+          ciRate.value = '';
+          ciTime.value = '';
+          ciCompFreq.value = '';
+          ciResult.textContent = '';
+          break;
+        case 'fuel_cost':
+          fuelDistance.value = '';
+          fuelMileage.value = '';
+          fuelPrice.value = '';
+          fuelResult.textContent = '';
+          break;
+        case 'percentage':
+          percentValue.value = '';
+          percentOf.value = '';
+          percentResult.textContent = '';
+          break;
+        case 'temperature':
+          tempInput.value = '';
+          tempResult.textContent = '';
+          break;
+        case 'mortgage':
+          mortPrincipal.value = '';
+          mortInterest.value = '';
+          mortTenure.value = '';
+          mortResult.textContent = '';
+          break;
+        case 'loan':
+          loanPrincipal.value = '';
+          loanInterest.value = '';
+          loanTenure.value = '';
+          loanExtra.value = '0';
+          loanResult.textContent = '';
+          break;
+        case 'date_diff':
+          date1.value = '';
+          date2.value = '';
+          dateDiffResult.textContent = '';
+          break;
+        case 'tip':
+          tipBill.value = '';
+          tipPercent.value = '';
+          tipPeople.value = '1';
+          tipResult.textContent = '';
+          break;
+        case 'body_fat':
+          bfAge.value = '';
+          bfWaist.value = '';
+          bfNeck.value = '';
+          bfHeight.value = '';
+          bfHip.value = '';
+          bfResult.textContent = '';
+          bfGender.value = 'male';
+          toggleHipInput('male');
+          break;
+        case 'calorie':
+          calorieAge.value = '';
+          calorieWeight.value = '';
+          calorieHeight.value = '';
+          calorieResult.textContent = '';
+          calorieGender.value = 'male';
+          calorieActivity.value = '1.2';
+          break;
+        case 'currency':
+          currencyAmount.value = '';
+          currencyResult.textContent = '';
+          currencyFrom.value = 'USD';
+          currencyTo.value = 'INR';
+          break;
+        case 'electrical':
+          voltage.value = '';
+          current.value = '';
+          resistance.value = '';
+          electricalResult.textContent = '';
+          break;
+        case 'cooking':
+          cookingAmount.value = '';
+          cookingResult.textContent = '';
+          cookingFrom.value = 'tsp';
+          cookingTo.value = 'ml';
+          break;
+        case 'timezone':
+          tzInput.value = '';
+          tzResult.textContent = '';
+          tzFrom.value = 'UTC';
+          tzTo.value = 'Asia/Kolkata';
+          break;
+      }
+    }
+
+    // === Shared Variables for basic/scientific calculator ===
+    let currentInput = '0';
+    let previousInput = null;
+    let operator = null;
+    let resetNext = false;
+    let memory = 0;
+    let powerWait = false;
+
+    // Helper functions
+    function degToRad(deg) {
+      return deg * Math.PI / 180;
+    }
+    function radToDeg(rad) {
+      return rad * 180 / Math.PI;
+    }
+    function factorial(n) {
+      if (n < 0 || !Number.isInteger(n)) return NaN;
+      let res = 1;
+      for (let i = 2; i <= n; i++) {
+        res *= i;
+      }
+      return res;
+    }
+    // === Basic calculator elements and logic ===
+    const basicDisplay = document.getElementById('basicDisplay');
+    const basicButtons = document.querySelector('#basic .buttons');
+
+    function updateBasicDisplay() {
+      basicDisplay.textContent = currentInput;
+    }
+    function appendDigit(digit) {
+      if (resetNext) {
+        currentInput = digit === '.' ? '0.' : digit;
+        resetNext = false;
+        return;
+      }
+      if (digit === '.') {
+        if (!currentInput.includes('.')) {
+          currentInput += '.';
+        }
+      } else {
+        if (currentInput === '0') {
+          currentInput = digit;
+        } else {
+          currentInput += digit;
+        }
+      }
+    }
+    function clearAll() {
+      currentInput = '0';
+      previousInput = null;
+      operator = null;
+      resetNext = false;
+      powerWait = false;
+    }
+    function deleteLast() {
+      if (resetNext) {
+        clearAll();
+        return;
+      }
+      if (currentInput.length > 1) {
+        currentInput = currentInput.slice(0, -1);
+        if (currentInput === '-' || currentInput === '') currentInput = '0';
+      } else {
+        currentInput = '0';
+      }
+    }
+    function calculate() {
+      if (powerWait) {
+        previousInput = currentInput;
+        resetNext = true;
+        return;
+      }
+      let prev = parseFloat(previousInput);
+      let current = parseFloat(currentInput);
+      if (isNaN(prev)) return;
+
+      let result = 0;
+      switch (operator) {
+        case 'add':
+          result = prev + current;
+          break;
+        case 'subtract':
+          result = prev - current;
+          break;
+        case 'multiply':
+          result = prev * current;
+          break;
+        case 'divide':
+          if (current === 0) {
+            alert("Cannot divide by zero");
+            return;
+          }
+          result = prev / current;
+          break;
+        case 'percent':
+          result = (prev * current) / 100;
+          break;
+        case 'pow':
+          result = Math.pow(prev, current);
+          break;
+        default:
+          return;
+      }
+      currentInput = String(result);
+      operator = null;
+      previousInput = null;
+      resetNext = true;
+    }
+    function handleOperator(nextOperator) {
+      switch(nextOperator) {
+        case 'add':
+        case 'subtract':
+        case 'multiply':
+        case 'divide':
+        case 'percent':
+          if (operator && !resetNext) {
+            calculate();
+          }
+          previousInput = currentInput;
+          operator = nextOperator;
+          resetNext = true;
+          powerWait = false;
+          break;
+        case 'pow':
+          if (!powerWait) {
+            previousInput = currentInput;
+            operator = nextOperator;
+            resetNext = true;
+            powerWait = true;
+          } else {
+            calculate();
+            powerWait = false;
+          }
+          break;
+        case 'sqrt': {
+          let value = parseFloat(currentInput);
+          if (value < 0) {
+            alert("Invalid input for square root");
+            return;
+          }
+          currentInput = String(Math.sqrt(value));
+          resetNext = true;
+          break;
+        }
+        case 'square': {
+          let value = parseFloat(currentInput);
+          currentInput = String(value * value);
+          resetNext = true;
+          break;
+        }
+        case 'reciprocal': {
+          let value = parseFloat(currentInput);
+          if (value === 0) {
+            alert("Cannot divide by zero");
+            return;
+          }
+          currentInput = String(1 / value);
+          resetNext = true;
+          break;
+        }
+        case 'negate': {
+          let value = parseFloat(currentInput);
+          currentInput = String(value * -1);
+          break;
+        }
+        case 'factorial': {
+          let value = parseFloat(currentInput);
+          let f = factorial(value);
+          if (isNaN(f)) {
+            alert("Factorial only defined for non-negative integers");
+          } else {
+            currentInput = String(f);
+            resetNext = true;
+          }
+          break;
+        }
+      }
+    }
+    basicButtons.addEventListener('click', e => {
+      const target = e.target;
+      if (target.tagName !== 'BUTTON') return;
+      if (target.dataset.digit !== undefined) {
+        appendDigit(target.dataset.digit);
+      } else if (target.dataset.action) {
+        const action = target.dataset.action;
+        switch(action) {
+          case 'clear':
+            clearAll();
+            break;
+          case 'delete':
+            deleteLast();
+            break;
+          case 'equals':
+            calculate();
+            break;
+          case 'mc':
+            memory = 0;
+            break;
+          case 'mr':
+            currentInput = String(memory);
+            resetNext = true;
+            break;
+          case 'mplus':
+            memory += parseFloat(currentInput);
+            resetNext = true;
+            break;
+          case 'mminus':
+            memory -= parseFloat(currentInput);
+            resetNext = true;
+            break;
+          default:
+            handleOperator(action);
+        }
+      }
+      updateBasicDisplay();
+    });
+
+    // === Scientific Calculator ===
+    const scientificDisplay = document.getElementById('scientificDisplay');
+    const scientificButtons = document.querySelector('#scientific .buttons');
+
+    function updateScientificDisplay() {
+      scientificDisplay.textContent = currentInput;
+    }
+    function handleScientificOperator(action) {
+      switch(action) {
+        case 'sin': {
+          let val = parseFloat(currentInput);
+          currentInput = String(Math.sin(degToRad(val)));
+          resetNext = true;
+          break;
+        }
+        case 'cos': {
+          let val = parseFloat(currentInput);
+          currentInput = String(Math.cos(degToRad(val)));
+          resetNext = true;
+          break;
+        }
+        case 'tan': {
+          let val = parseFloat(currentInput);
+          currentInput = String(Math.tan(degToRad(val)));
+          resetNext = true;
+          break;
+        }
+        case 'asin': {
+          let val = parseFloat(currentInput);
+          if (val < -1 || val > 1) {
+            alert("Input must be between -1 and 1");
+            break;
+          }
+          currentInput = String(radToDeg(Math.asin(val)));
+          resetNext = true;
+          break;
+        }
+        case 'acos': {
+          let val = parseFloat(currentInput);
+          if (val < -1 || val > 1) {
+            alert("Input must be between -1 and 1");
+            break;
+          }
+          currentInput = String(radToDeg(Math.acos(val)));
+          resetNext = true;
+          break;
+        }
+        case 'atan': {
+          let val = parseFloat(currentInput);
+          currentInput = String(radToDeg(Math.atan(val)));
+          resetNext = true;
+          break;
+        }
+        case 'log': {
+          let val = parseFloat(currentInput);
+          if (val <= 0) {
+            alert("Input must be positive");
+            break;
+          }
+          currentInput = String(Math.log10(val));
+          resetNext = true;
+          break;
+        }
+        case 'ln': {
+          let val = parseFloat(currentInput);
+          if (val <= 0) {
+            alert("Input must be positive");
+            break;
+          }
+          currentInput = String(Math.log(val));
+          resetNext = true;
+          break;
+        }
+        case 'exp': {
+          let val = parseFloat(currentInput);
+          currentInput = String(Math.exp(val));
+          resetNext = true;
+          break;
+        }
+        case 'pi': {
+          currentInput = String(Math.PI);
+          resetNext = true;
+          break;
+        }
+        case 'e': {
+          currentInput = String(Math.E);
+          resetNext = true;
+          break;
+        }
+        default:
+          handleOperator(action);
+      }
+    }
+    scientificButtons.addEventListener('click', e => {
+      const target = e.target;
+      if (target.tagName !== 'BUTTON') return;
+      if (target.dataset.digit !== undefined) {
+        appendDigit(target.dataset.digit);
+      } else if (target.dataset.action) {
+        const action = target.dataset.action;
+        if (action === 'clear') {
+          clearAll();
+        } else if (action === 'delete') {
+          deleteLast();
+        } else if (action === 'equals') {
+          calculate();
+        } else {
+          handleScientificOperator(action);
+        }
+      }
+      updateScientificDisplay();
+    });
+
+    // === EMI Calculator ===
+    const emiPrincipal = document.getElementById('emiPrincipal');
+    const emiInterest = document.getElementById('emiInterest');
+    const emiTenure = document.getElementById('emiTenure');
+    const emiResult = document.getElementById('emiResult');
+    const calcEmiBtn = document.getElementById('calcEmiBtn');
+
+    calcEmiBtn.addEventListener('click', () => {
+      const P = parseFloat(emiPrincipal.value);
+      const R = parseFloat(emiInterest.value);
+      const N = parseInt(emiTenure.value);
+
+      if (isNaN(P) || P <= 0) {
+        emiResult.textContent = "Please enter a valid Principal amount.";
+        return;
+      }
+      if (isNaN(R) || R <= 0) {
+        emiResult.textContent = "Please enter a valid Interest rate.";
+        return;
+      }
+      if (isNaN(N) || N <= 0) {
+        emiResult.textContent = "Please enter a valid Tenure in months.";
+        return;
+      }
+
+      const monthlyInterestRate = R / (12 * 100);
+      const numerator = P * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, N);
+      const denominator = Math.pow(1 + monthlyInterestRate, N) - 1;
+      const emi = numerator / denominator;
+
+      const totalPayment = emi * N;
+      const totalInterest = totalPayment - P;
+
+      emiResult.innerHTML = `EMI: ₹${emi.toFixed(2)}\nTotal Payment: ₹${totalPayment.toFixed(2)}\nTotal Interest: ₹${totalInterest.toFixed(2)}`;
+    });
+
+    // === BMI Calculator ===
+    const bmiWeight = document.getElementById('bmiWeight');
+    const bmiHeight = document.getElementById('bmiHeight');
+    const bmiResult = document.getElementById('bmiResult');
+    const calcBmiBtn = document.getElementById('calcBmiBtn');
+
+    calcBmiBtn.addEventListener('click', () => {
+      const weight = parseFloat(bmiWeight.value);
+      const heightCm = parseFloat(bmiHeight.value);
+
+      if (isNaN(weight) || weight <= 0) {
+        bmiResult.textContent = "Please enter a valid weight.";
+        return;
+      }
+      if (isNaN(heightCm) || heightCm <= 0) {
+        bmiResult.textContent = "Please enter a valid height.";
+        return;
+      }
+
+      const heightM = heightCm / 100;
+      const bmi = weight / (heightM * heightM);
+      let category = "";
+      if (bmi < 18.5) category = "Underweight";
+      else if (bmi < 24.9) category = "Normal weight";
+      else if (bmi < 29.9) category = "Overweight";
+      else category = "Obese";
+
+      bmiResult.textContent = `BMI: ${bmi.toFixed(2)} (${category})`;
+    });
+
+    // === Simple Interest Calculator ===
+    const siPrincipal = document.getElementById('siPrincipal');
+    const siRate = document.getElementById('siRate');
+    const siTime = document.getElementById('siTime');
+    const siResult = document.getElementById('siResult');
+    const calcSiBtn = document.getElementById('calcSiBtn');
+
+    calcSiBtn.addEventListener('click', () => {
+      const P = parseFloat(siPrincipal.value);
+      const R = parseFloat(siRate.value);
+      const T = parseFloat(siTime.value);
+      if (isNaN(P) || P <= 0) {
+        siResult.textContent = "Please enter a valid Principal amount.";
+        return;
+      }
+      if (isNaN(R) || R < 0) {
+        siResult.textContent = "Please enter a valid Interest rate.";
+        return;
+      }
+      if (isNaN(T) || T < 0) {
+        siResult.textContent = "Please enter a valid Time period.";
+        return;
+      }
+      const SI = (P * R * T) / 100;
+      const total = P + SI;
+      siResult.innerHTML = `Simple Interest: ₹${SI.toFixed(2)}\nTotal Amount: ₹${total.toFixed(2)}`;
+    });
+
+    // === Compound Interest Calculator ===
+    const ciPrincipal = document.getElementById('ciPrincipal');
+    const ciRate = document.getElementById('ciRate');
+    const ciTime = document.getElementById('ciTime');
+    const ciCompFreq = document.getElementById('ciCompFreq');
+    const ciResult = document.getElementById('ciResult');
+    const calcCiBtn = document.getElementById('calcCiBtn');
+
+    calcCiBtn.addEventListener('click', () => {
+      const P = parseFloat(ciPrincipal.value);
+      const R = parseFloat(ciRate.value);
+      const T = parseFloat(ciTime.value);
+      const n = parseInt(ciCompFreq.value);
+
+      if (isNaN(P) || P <= 0) {
+        ciResult.textContent = "Please enter a valid Principal amount.";
+        return;
+      }
+      if (isNaN(R) || R < 0) {
+        ciResult.textContent = "Please enter a valid Interest rate.";
+        return;
+      }
+      if (isNaN(T) || T < 0) {
+        ciResult.textContent = "Please enter a valid Time period.";
+        return;
+      }
+      if (isNaN(n) || n < 1) {
+        ciResult.textContent = "Please enter a valid Compound frequency.";
+        return;
+      }
+
+      const total = P * Math.pow(1 + (R / (100 * n)), n * T);
+      const CI = total - P;
+
+      ciResult.innerHTML = `Compound Interest: ₹${CI.toFixed(2)}\nTotal Amount: ₹${total.toFixed(2)}`;
+    });
+
+    // === Fuel Cost Calculator ===
+    const fuelDistance = document.getElementById('fuelDistance');
+    const fuelMileage = document.getElementById('fuelMileage');
+    const fuelPrice = document.getElementById('fuelPrice');
+    const fuelResult = document.getElementById('fuelResult');
+    const calcFuelBtn = document.getElementById('calcFuelBtn');
+
+    calcFuelBtn.addEventListener('click', () => {
+      const distance = parseFloat(fuelDistance.value);
+      const mileage = parseFloat(fuelMileage.value);
+      const price = parseFloat(fuelPrice.value);
+
+      if (isNaN(distance) || distance <= 0) {
+        fuelResult.textContent = "Please enter a valid distance.";
+        return;
+      }
+      if (isNaN(mileage) || mileage <= 0) {
+        fuelResult.textContent = "Please enter a valid mileage.";
+        return;
+      }
+      if (isNaN(price) || price <= 0) {
+        fuelResult.textContent = "Please enter a valid fuel price.";
+        return;
+      }
+
+      const fuelNeeded = distance / mileage;
+      const cost = fuelNeeded * price;
+
+      fuelResult.textContent = `Estimated Fuel Cost: ₹${cost.toFixed(2)}`;
+    });
+
+    // === Percentage Calculator ===
+    const percentValue = document.getElementById('percentValue');
+    const percentOf = document.getElementById('percentOf');
+    const percentResult = document.getElementById('percentResult');
+    const calcPercentBtn = document.getElementById('calcPercentBtn');
+
+    calcPercentBtn.addEventListener('click', () => {
+      const val = parseFloat(percentValue.value);
+      const of = parseFloat(percentOf.value);
+
+      if (isNaN(val)) {
+        percentResult.textContent = "Please enter a valid value.";
+        return;
+      }
+      if (isNaN(of)) {
+        percentResult.textContent = "Please enter a valid percentage base.";
+        return;
+      }
+      const result = (val / 100) * of;
+      percentResult.textContent = `${val}% of ${of} = ${result.toFixed(2)}`;
+    });
+
+    // === Temperature Converter ===
+    const tempInput = document.getElementById('tempInput');
+    const tempUnit = document.getElementById('tempUnit');
+    const tempResult = document.getElementById('tempResult');
+    const calcTempBtn = document.getElementById('calcTempBtn');
+
+    calcTempBtn.addEventListener('click', () => {
+      const temp = parseFloat(tempInput.value);
+      if (isNaN(temp)) {
+        tempResult.textContent = "Please enter a valid temperature.";
+        return;
+      }
+      const unit = tempUnit.value;
+
+      let celsius, fahrenheit, kelvin;
+
+      if (unit === 'celsius') {
+        celsius = temp;
+        fahrenheit = (temp * 9/5) + 32;
+        kelvin = temp + 273.15;
+      } else if (unit === 'fahrenheit') {
+        celsius = (temp - 32) * 5/9;
+        fahrenheit = temp;
+        kelvin = celsius + 273.15;
+      } else if (unit === 'kelvin') {
+        celsius = temp - 273.15;
+        fahrenheit = (celsius * 9/5) + 32;
+        kelvin = temp;
+      }
+
+      tempResult.innerHTML =
+        `Celsius: ${celsius.toFixed(2)} °C\n` +
+        `Fahrenheit: ${fahrenheit.toFixed(2)} °F\n` +
+        `Kelvin: ${kelvin.toFixed(2)} K`;
+    });
+
+    // === Mortgage Calculator ===
+    const mortPrincipal = document.getElementById('mortPrincipal');
+    const mortInterest = document.getElementById('mortInterest');
+    const mortTenure = document.getElementById('mortTenure');
+    const mortResult = document.getElementById('mortResult');
+    const calcMortBtn = document.getElementById('calcMortBtn');
+
+    calcMortBtn.addEventListener('click', () => {
+      const P = parseFloat(mortPrincipal.value);
+      const R = parseFloat(mortInterest.value);
+      const T = parseInt(mortTenure.value);
+
+      if (isNaN(P) || P <= 0) {
+        mortResult.textContent = "Please enter a valid loan amount.";
+        return;
+      }
+      if (isNaN(R) || R <= 0) {
+        mortResult.textContent = "Please enter a valid interest rate.";
+        return;
+      }
+      if (isNaN(T) || T <= 0) {
+        mortResult.textContent = "Please enter a valid tenure in years.";
+        return;
+      }
+
+      const n = T*12;
+      const r = R/(12*100);
+
+      const numerator = P * r * Math.pow(1 + r, n);
+      const denominator = Math.pow(1 + r, n) - 1;
+      const emi = numerator / denominator;
+      const totalPayment = emi * n;
+      const totalInterest = totalPayment - P;
+
+      mortResult.innerHTML = `Monthly Payment: ₹${emi.toFixed(2)}\nTotal Payment: ₹${totalPayment.toFixed(2)}\nTotal Interest: ₹${totalInterest.toFixed(2)}`;
+    });
+
+    // === Loan Calculator ===
+    const loanPrincipal = document.getElementById('loanPrincipal');
+    const loanInterest = document.getElementById('loanInterest');
+    const loanTenure = document.getElementById('loanTenure');
+    const loanExtra = document.getElementById('loanExtra');
+    const loanResult = document.getElementById('loanResult');
+    const calcLoanBtn = document.getElementById('calcLoanBtn');
+
+    calcLoanBtn.addEventListener('click', () => {
+      let P = parseFloat(loanPrincipal.value);
+      const R = parseFloat(loanInterest.value);
+      let N = parseInt(loanTenure.value);
+      const extra = parseFloat(loanExtra.value) || 0;
+
+      if (isNaN(P) || P <= 0) {
+        loanResult.textContent = "Please enter a valid loan amount.";
+        return;
+      }
+      if (isNaN(R) || R <= 0) {
+        loanResult.textContent = "Please enter a valid interest rate.";
+        return;
+      }
+      if (isNaN(N) || N <= 0) {
+        loanResult.textContent = "Please enter a valid tenure in months.";
+        return;
+      }
+      if(extra < 0){
+        loanResult.textContent = "Additional payment cannot be negative.";
+        return;
+      }
+
+      const r = R / (12 * 100);
+      let balance = P;
+      let month = 0;
+      let totalInterest = 0;
+      const regularMonthlyPayment = (P*r*Math.pow(1+r,N))/(Math.pow(1+r,N)-1);
+
+      while(balance > 0){
+        month++;
+        let interestForMonth = balance * r;
+        let principalForMonth = regularMonthlyPayment - interestForMonth + extra;
+        if(principalForMonth > balance) principalForMonth = balance;
+        balance -= principalForMonth;
+        totalInterest += interestForMonth;
+        if(month > 1000){
+          loanResult.textContent = "Calculation limit reached, please adjust inputs.";
+          return;
+        }
+      }
+
+      loanResult.innerHTML = `Months to payoff: ${month}\nTotal Interest Paid: ₹${totalInterest.toFixed(2)}`;
+    });
+
+    // === Date Difference Calculator ===
+    const date1 = document.getElementById('date1');
+    const date2 = document.getElementById('date2');
+    const dateDiffResult = document.getElementById('dateDiffResult');
+    const calcDateDiffBtn = document.getElementById('calcDateDiffBtn');
+
+    calcDateDiffBtn.addEventListener('click', () => {
+      let d1 = new Date(date1.value);
+      let d2 = new Date(date2.value);
+      if (!date1.value || !date2.value) {
+        dateDiffResult.textContent = "Please select both dates.";
+        return;
+      }
+      if(d2 < d1){
+        dateDiffResult.textContent = "End date must be after start date.";
+        return;
+      }
+      const diffMs = d2 - d1;
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const diffWeeks = Math.floor(diffDays / 7);
+      const diffMonths = (d2.getFullYear() - d1.getFullYear()) * 12 + (d2.getMonth() - d1.getMonth());
+      const diffYears = d2.getFullYear() - d1.getFullYear();
+      dateDiffResult.innerHTML = `Difference:\n${diffDays} days\n${diffWeeks} weeks\n${diffMonths} months\n${diffYears} years`;
+    });
+
+    // === Tip Calculator ===
+    const tipBill = document.getElementById('tipBill');
+    const tipPercent = document.getElementById('tipPercent');
+    const tipPeople = document.getElementById('tipPeople');
+    const tipResult = document.getElementById('tipResult');
+    const calcTipBtn = document.getElementById('calcTipBtn');
+
+    calcTipBtn.addEventListener('click', () => {
+      const bill = parseFloat(tipBill.value);
+      const percent = parseFloat(tipPercent.value);
+      const people = parseInt(tipPeople.value);
+
+      if (isNaN(bill) || bill <= 0) {
+        tipResult.textContent = "Please enter a valid bill amount.";
+        return;
+      }
+      if (isNaN(percent) || percent < 0) {
+        tipResult.textContent = "Please enter a valid tip percentage.";
+        return;
+      }
+      if (isNaN(people) || people < 1) {
+        tipResult.textContent = "Please enter a valid number of people.";
+        return;
+      }
+
+      const totalTip = (bill * percent / 100);
+      const tipPerPerson = totalTip / people;
+      const totalPerPerson = (bill + totalTip) / people;
+
+      tipResult.innerHTML = `Total Tip: ₹${totalTip.toFixed(2)}\nTip per person: ₹${tipPerPerson.toFixed(2)}\nTotal per person: ₹${totalPerPerson.toFixed(2)}`;
+    });
+
+    // === Body Fat Calculator ===
+    const bfGender = document.getElementById('bfGender');
+    const bfAge = document.getElementById('bfAge');
+    const bfWaist = document.getElementById('bfWaist');
+    const bfNeck = document.getElementById('bfNeck');
+    const bfHeight = document.getElementById('bfHeight');
+    const bfHip = document.getElementById('bfHip');
+    const bfHipLabel = document.getElementById('bfHipLabel');
+    const bfResult = document.getElementById('bfResult');
+    const calcBfBtn = document.getElementById('calcBfBtn');
+
+    function toggleHipInput(gender) {
+      if (gender === 'female') {
+        bfHip.style.display = 'block';
+        bfHipLabel.style.display = 'block';
+      } else {
+        bfHip.style.display = 'none';
+        bfHipLabel.style.display = 'none';
+        bfHip.value = '';
+      }
+    }
+
+    bfGender.addEventListener('change', () => {
+      toggleHipInput(bfGender.value);
+    });
+
+    calcBfBtn.addEventListener('click', () => {
+      const gender = bfGender.value;
+      const age = parseInt(bfAge.value);
+      const waist = parseFloat(bfWaist.value);
+      const neck = parseFloat(bfNeck.value);
+      const height = parseFloat(bfHeight.value);
+      const hip = gender === 'female' ? parseFloat(bfHip.value) : 0;
+
+      if (!age || age <= 0) {
+        bfResult.textContent = "Please enter a valid age.";
+        return;
+      }
+      if (!waist || waist <= 0) {
+        bfResult.textContent = "Please enter a valid waist circumference.";
+        return;
+      }
+      if (!neck || neck <= 0) {
+        bfResult.textContent = "Please enter a valid neck circumference.";
+        return;
+      }
+      if (!height || height <= 0) {
+        bfResult.textContent = "Please enter a valid height.";
+        return;
+      }
+      if (gender === 'female' && (!hip || hip <= 0)) {
+        bfResult.textContent = "Please enter a valid hip circumference.";
+        return;
+      }
+
+      // Using US Navy Body Fat Formula
+      let bodyFat = NaN;
+      if(gender === 'male'){
+        bodyFat = 495 / (1.0324 - 0.19077 * Math.log10(waist - neck) + 0.15456 * Math.log10(height)) - 450;
+      }else{
+        bodyFat = 495 / (1.29579 - 0.35004 * Math.log10(waist + hip - neck) + 0.22100 * Math.log10(height)) - 450;
+      }
+      bfResult.textContent = `Estimated Body Fat Percentage: ${bodyFat.toFixed(2)}%`;
+    });
+
+    // === Calorie Calculator ===
+    const calorieGender = document.getElementById('calorieGender');
+    const calorieAge = document.getElementById('calorieAge');
+    const calorieWeight = document.getElementById('calorieWeight');
+    const calorieHeight = document.getElementById('calorieHeight');
+    const calorieActivity = document.getElementById('calorieActivity');
+    const calorieResult = document.getElementById('calorieResult');
+    const calcCalorieBtn = document.getElementById('calcCalorieBtn');
+
+    calcCalorieBtn.addEventListener('click', () => {
+      const gender = calorieGender.value;
+      let age = parseInt(calorieAge.value);
+      let weight = parseFloat(calorieWeight.value);
+      let height = parseFloat(calorieHeight.value);
+      let activity = parseFloat(calorieActivity.value);
+
+      if (!age || age <= 0) {
+        calorieResult.textContent = "Please enter a valid age.";
+        return;
+      }
+      if (!weight || weight <= 0) {
+        calorieResult.textContent = "Please enter a valid weight.";
+        return;
+      }
+      if (!height || height <= 0) {
+        calorieResult.textContent = "Please enter a valid height.";
+        return;
+      }
+
+      let bmr = 0;
+      if(gender === 'male'){
+        bmr = 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+      }else{
+        bmr = 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+      }
+      const calories = bmr * activity;
+      calorieResult.textContent = `Estimated Daily Calories Needed: ${calories.toFixed(0)} kcal`;
+    });
+
+    // === Currency Converter ===
+    const currencyAmount = document.getElementById('currencyAmount');
+    const currencyFrom = document.getElementById('currencyFrom');
+    const currencyTo = document.getElementById('currencyTo');
+    const currencyResult = document.getElementById('currencyResult');
+    const calcCurrencyBtn = document.getElementById('calcCurrencyBtn');
+
+    // Static exchange rates as example base USD
+    const rates = {
+      "USD":1,
+      "INR":82.3,
+      "EUR":0.92,
+      "GBP":0.81,
+      "JPY":139.3,
+      "CNY":6.99
+    };
+
+    calcCurrencyBtn.addEventListener('click', () => {
+      const amount = parseFloat(currencyAmount.value);
+      const from = currencyFrom.value;
+      const to = currencyTo.value;
+
+      if (isNaN(amount) || amount < 0) {
+        currencyResult.textContent = "Please enter a valid amount.";
+        return;
+      }
+      if (!(from in rates) || !(to in rates)) {
+        currencyResult.textContent = "Currency not supported.";
+        return;
+      }
+
+      const usdValue = amount / rates[from];
+      const converted = usdValue * rates[to];
+
+      currencyResult.textContent = `${amount.toFixed(2)} ${from} = ${converted.toFixed(2)} ${to}`;
+    });
+
+    // === Electrical Calculator ===
+    const voltage = document.getElementById('voltage');
+    const current = document.getElementById('current');
+    const resistance = document.getElementById('resistance');
+    const electricalResult = document.getElementById('electricalResult');
+    const calcElectricalBtn = document.getElementById('calcElectricalBtn');
+
+    calcElectricalBtn.addEventListener('click', () => {
+      const V = parseFloat(voltage.value);
+      const I = parseFloat(current.value);
+      const R = parseFloat(resistance.value);
+
+      let countFilled = [V,I,R].filter(n=>!isNaN(n)).length;
+      if(countFilled < 2) {
+        electricalResult.textContent = "Please enter at least two values.";
+        return;
+      }
+
+      let v = V, i = I, r = R;
+
+      // Calculate missing values using Ohm’s law V=IR
+      if(isNaN(v)) v = i * r;
+      if(isNaN(i)) i = v / r;
+      if(isNaN(r)) r = v / i;
+
+      electricalResult.innerHTML = `Voltage: ${v.toFixed(2)} V\nCurrent: ${i.toFixed(2)} A\nResistance: ${r.toFixed(2)} Ω`;
+    });
+
+    // === Cooking Measurement Converter ===
+    const cookingAmount = document.getElementById('cookingAmount');
+    const cookingFrom = document.getElementById('cookingFrom');
+    const cookingTo = document.getElementById('cookingTo');
+    const cookingResult = document.getElementById('cookingResult');
+    const calcCookingBtn = document.getElementById('calcCookingBtn');
+
+    // Conversion rates to milliliters or grams as base units (assumed for demo)
+    // tsp, tbsp, cup → ml; oz, g, kg → g, l → 1000 ml
+    const volumeUnits = {
+      "tsp": 4.92892,  // ml
+      "tbsp": 14.7868,
+      "cup": 240,
+      "ml": 1,
+      "l": 1000
+    };
+    const weightUnits = {
+      "g": 1,
+      "kg": 1000,
+      "oz": 28.3495
+    };
+
+    calcCookingBtn.addEventListener('click', () => {
+      const amt = parseFloat(cookingAmount.value);
+      const from = cookingFrom.value;
+      const to = cookingTo.value;
+
+      if (isNaN(amt) || amt < 0) {
+        cookingResult.textContent = "Please enter a valid amount.";
+        return;
+      }
+      // Check if units are volume or weight
+      const fromVolume = from in volumeUnits;
+      const toVolume = to in volumeUnits;
+      const fromWeight = from in weightUnits;
+      const toWeight = to in weightUnits;
+
+      if((fromVolume && toWeight) || (fromWeight && toVolume)) {
+        cookingResult.textContent = "Volume and Weight conversions not supported.";
+        return;
+      }
+
+      if(fromVolume && toVolume){
+        // Convert from 'from' unit to ml
+        let base = amt * volumeUnits[from];
+        // Convert ml to 'to' unit
+        let res = base / volumeUnits[to];
+        cookingResult.textContent = `${amt} ${from} = ${res.toFixed(2)} ${to}`;
+      } else if (fromWeight && toWeight){
+        let base = amt * weightUnits[from];
+        let res = base / weightUnits[to];
+        cookingResult.textContent = `${amt} ${from} = ${res.toFixed(2)} ${to}`;
+      } else {
+        cookingResult.textContent = "Unit conversion error.";
+      }
+    });
+
+    // === Time Zone Converter ===
+    const tzInput = document.getElementById('tzInput');
+    const tzFrom = document.getElementById('tzFrom');
+    const tzTo = document.getElementById('tzTo');
+    const tzResult = document.getElementById('tzResult');
+    const calcTzBtn = document.getElementById('calcTzBtn');
+
+    // Basic timezone offsets for demo purposes (without DST):
+    const tzOffsets = {
+      "UTC": 0,
+      "Asia/Kolkata": 5.5,
+      "America/New_York": -5,
+      "Europe/London": 0,
+      "Asia/Tokyo": 9,
+      "Australia/Sydney": 10
+    };
+    
+    // === Cash Denomination Calculator ===
+    const c5 = document.getElementById('c5');
+    const c10 = document.getElementById('c10');
+    const c20 = document.getElementById('c20');
+    const c50 = document.getElementById('c50');
+    const c100 = document.getElementById('c100');
+    const c200 = document.getElementById('c200');
+    const c500 = document.getElementById('c500');
+    const cashResult = document.getElementById('cashResult');
+    const calcCashBtn = document.getElementById('calcCashBtn');
+    
+    calcCashBtn.addEventListener('click', () => {
+      const denoms = [
+        { value: 5, count: parseInt(c5.value) || 0 },
+        { value: 10, count: parseInt(c10.value) || 0 },
+        { value: 20, count: parseInt(c20.value) || 0 },
+        { value: 50, count: parseInt(c50.value) || 0 },
+        { value: 100, count: parseInt(c100.value) || 0 },
+        { value: 200, count: parseInt(c200.value) || 0 },
+        { value: 500, count: parseInt(c500.value) || 0 }
+      ];
+    
+      let total = 0;
+      let outputHTML = "";
+    
+      denoms.forEach(item => {
+        const subtotal = item.count * item.value;
+        total += subtotal;
+        outputHTML += `₹${item.value} × ${item.count} = ₹${subtotal}<br>`;
+      });
+    
+      outputHTML += `<strong>Total Amount: ₹${total}</strong>`;
+      cashResult.innerHTML = outputHTML;
+    });
+
+
+    calcTzBtn.addEventListener('click', () => {
+      const datetimeStr = tzInput.value;
+      const fromTz = tzFrom.value;
+      const toTz = tzTo.value;
+
+      if(!datetimeStr){
+        tzResult.textContent = "Please select date and time.";
+        return;
+      }
+      if(!(fromTz in tzOffsets) || !(toTz in tzOffsets)){
+        tzResult.textContent = "Timezone not supported.";
+        return;
+      }
+
+      const date = new Date(datetimeStr);
+      if(isNaN(date.getTime())){
+        tzResult.textContent = "Invalid date/time format.";
+        return;
+      }
+
+      // Convert input date to UTC by subtracting fromTz offset
+      const fromOffset = tzOffsets[fromTz] * 60; // in minutes
+      const toOffset = tzOffsets[toTz] * 60; // in minutes
+      // Calculate new UTC time
+      const utcTime = date.getTime() - fromOffset*60000;
+      // Add toOffset to get target timezone time
+      const targetTime = new Date(utcTime + toOffset*60000);
+
+      tzResult.textContent = `Converted time (${toTz}): ${targetTime.toLocaleString()}`;
+    });
+
+  })();
+</script>
+</body>
+</html>
